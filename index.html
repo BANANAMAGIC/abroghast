@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Web App</title>
+    <script type="module">
+        // Import Firebase SDK properly
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB4GeLePVUN5JHig0aNY9qv2nxk2Dt7xZU",
+            authDomain: "web-app-85e63.firebaseapp.com",
+            projectId: "web-app-85e63",
+            storageBucket: "web-app-85e63.firebasestorage.app",
+            messagingSenderId: "398387552326",
+            appId: "1:398387552326:web:a8f10a652fe73ad90eea47",
+            measurementId: "G-FWR0NSB3GW"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let userName = "";
+        let userPurpose = "";
+
+        window.startApp = async function () {
+            userName = document.getElementById("name").value;
+            userPurpose = document.getElementById("purpose").value;
+            if (userName && userPurpose) {
+                document.getElementById("input-screen").style.display = "none";
+                document.getElementById("app-screen").style.display = "block";
+                await recordAction("SYSTEM", `User: ${userName}, Purpose: ${userPurpose}`);
+            } else {
+                alert("Please enter both name and purpose.");
+            }
+        }
+
+        window.changeNumber = async function (section, delta) {
+            let numElement = document.getElementById(`${section}-number`);
+            let currentNum = parseInt(numElement.textContent);
+            let newNum = Math.min(10, Math.max(1, currentNum + delta));
+            numElement.textContent = newNum;
+            await recordAction(section, `Changed Power Level to ${newNum}`);
+        }
+
+        async function recordAction(section, action) {
+            let timestamp = new Date().toISOString();
+            try {
+                await addDoc(collection(db, "logs"), {
+                    user: userName,
+                    purpose: userPurpose,
+                    section: section.toUpperCase(),
+                    action: action,
+                    timestamp: timestamp
+                });
+                console.log("Log saved successfully");
+            } catch (error) {
+                console.error("Error saving log: ", error);
+            }
+        }
+
+        window.recordAction = recordAction;
+    </script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: black; color: white; }
+        .container { width: 50%; margin: auto; }
+        .section { border: 2px solid white; padding: 20px; margin: 20px 0; }
+        button { font-size: 16px; margin: 5px; padding: 10px; }
+        .shock-button { background-color: red; color: white; border: none; padding: 10px 20px; font-size: 16px; }
+        input { background-color: white; color: black; padding: 5px; }
+        .power-level { font-size: 36px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container" id="input-screen">
+        <h2>Enter Your Details</h2>
+        <label for="name">Name:</label>
+        <input type="text" id="name" required>
+        <br>
+        <label for="purpose">Purpose:</label>
+        <input type="text" id="purpose" required>
+        <br>
+        <button onclick="startApp()">Start</button>
+    </div>
+
+    <div class="container" id="app-screen" style="display: none;">
+        <div class="section" id="top-section">
+            <h2>TOP</h2>
+            <p>Power Level: <span id="top-number" class="power-level">1</span></p>
+            <p>(1 is least painful, 10 is most painful)</p>
+            <button onclick="changeNumber('top', -1)">-</button>
+            <button onclick="changeNumber('top', 1)">+</button>
+            <br>
+            <button class="shock-button" onclick="recordAction('top', 'SHOCK')">SHOCK</button>
+        </div>
+
+        <div class="section" id="bottom-section">
+            <h2>BOTTOM</h2>
+            <p>Power Level: <span id="bottom-number" class="power-level">1</span></p>
+            <p>(1 is least painful, 10 is most painful)</p>
+            <button onclick="changeNumber('bottom', -1)">-</button>
+            <button onclick="changeNumber('bottom', 1)">+</button>
+            <br>
+            <button class="shock-button" onclick="recordAction('bottom', 'SHOCK')">SHOCK</button>
+        </div>
+    </div>
+</body>
+</html>
