@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trainer App</title>
+    <title>Remote Trainer App</title>
     <script type="module">
         // Import Firebase SDK properly
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
@@ -24,18 +24,20 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        let pairingCode = "";
         let userName = "";
         let userPurpose = "";
 
         window.startApp = async function () {
+            pairingCode = document.getElementById("pairing-code").value;
             userName = document.getElementById("name").value;
             userPurpose = document.getElementById("purpose").value;
-            if (userName && userPurpose) {
+            if (pairingCode && userName && userPurpose) {
                 document.getElementById("input-screen").style.display = "none";
                 document.getElementById("app-screen").style.display = "block";
-                await recordAction("SYSTEM", `User: ${userName}, Purpose: ${userPurpose}`);
+                await recordAction("SYSTEM", `Pairing Code: ${pairingCode}, User: ${userName}, Purpose: ${userPurpose}`);
             } else {
-                alert("Please enter both name and purpose.");
+                alert("Please enter all fields.");
             }
         }
 
@@ -51,6 +53,7 @@
             let timestamp = new Date().toISOString();
             try {
                 await addDoc(collection(db, "logs"), {
+                    pairingCode: pairingCode,
                     user: userName,
                     purpose: userPurpose,
                     section: section.toUpperCase(),
@@ -78,6 +81,9 @@
 <body>
     <div class="container" id="input-screen">
         <h2>Enter Your Details</h2>
+        <label for="pairing-code">Device Pairing Code:</label>
+        <input type="text" id="pairing-code" required>
+        <br>
         <label for="name">Name:</label>
         <input type="text" id="name" required>
         <br>
